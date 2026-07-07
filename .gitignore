@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.wrangler/
+.DS_Store
+.env
+.env.local
+*.log
+.vite/
+api_keys.txt
+git_pat.txt

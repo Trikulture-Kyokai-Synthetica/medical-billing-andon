@@ -1,0 +1,43 @@
+name: Deploy
+
+# CI/CD: every push to main type-checks, builds, and deploys the demo to
+# Cloudflare Workers. The scrubber runs the real Agicore qc-runtime, so a
+# broken harness or a type error should never reach the deployed demo — the
+# build gate (tsc --noEmit && vite build) is the same fail-closed spirit as
+# the andon loop the demo itself showcases.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - uses: actions/setup-node@v4.1.0
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Type-check + build
+        run: npm run build
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3.14.1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.21.0"

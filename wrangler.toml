@@ -1,0 +1,24 @@
+name = "medical-billing-andon"
+main = "worker/index.ts"
+compatibility_date = "2026-06-29"
+compatibility_flags = ["nodejs_compat"]
+
+# Vite builds the SPA into ./dist; the worker fronts it. Two jobs:
+# (1) proxy /api/babyai/* to the BabyAI HF Space with the server-held
+# HF_TOKEN attached, and (2) serve the SPA for everything else.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+# Without this, the asset server intercepts HTML navigations
+# (Sec-Fetch-Dest: document) and serves index.html via the SPA
+# fallback BEFORE the worker script runs — so /api/babyai/* would
+# get the SPA's index.html instead of the worker's response in any
+# real browser. curl bypasses the heuristic so the bug only surfaces
+# in browsers. run_worker_first = true forces the worker to handle
+# every request and explicitly delegate to ASSETS.
+run_worker_first = true
+
+# HF_TOKEN is set via `wrangler secret put HF_TOKEN` (or in the
+# dashboard under Settings → Variables and Secrets). Never declared
+# as a [vars] entry — vars ship in the bundle, secrets don't.
