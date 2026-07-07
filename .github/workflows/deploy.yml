@@ -36,11 +36,11 @@ jobs:
         run: npm run build
 
       - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3.14.1
-        with:
-          wranglerVersion: "4.21.0"
+        # Call wrangler directly rather than via wrangler-action: the wrapper
+        # did not export the API token into wrangler's environment in a
+        # non-interactive run. A plain step guarantees env propagation, and
+        # wrangler 4.x reads CLOUDFLARE_API_TOKEN / _ACCOUNT_ID natively.
+        run: npx --yes wrangler@4.21.0 deploy
         env:
-          # wrangler 4.x reads these from the environment directly; passing them
-          # as action inputs alone is not enough in a non-interactive run.
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
