@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "description": "Medical-billing andon-loop demo — a claim scrubber that learns to prevent payer denials, running on the real Agicore qc-runtime.",
+  "description": "Medical-billing andon-loop demo \u2014 a claim scrubber that learns to prevent payer denials, running on the real Agicore qc-runtime.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -22,5 +22,6 @@
     "@vitejs/plugin-react": "4.7.0",
     "typescript": "5.6.3",
     "vite": "6.4.3"
-  }
+  },
+  "license": "MIT"
 }
