@@ -3,6 +3,8 @@ import { messagesFor } from "./lib/edi";
 import { ALL_BILLING_FIELDS, carcForField } from "./lib/carc";
 import type { TickStage } from "./lib/billing-loop";
 import type { LedgerEntry, LedgerKind } from "./lib/ledger";
+import { useMemo } from "react";
+import { analyzeHarness } from "./lib/analysis";
 
 // ── Header + controls ────────────────────────────────────────────────────────
 
@@ -209,6 +211,88 @@ function HarnessPanel() {
   );
 }
 
+
+// ── Authoring-time analysis ──────────────────────────────────────────────────
+// The compiler pass, next to the test suite. Replay asks "does any claim I
+// have seen break?" This asks "is any claim that could exist now impossible?"
+
+function AnalysisPanel() {
+  const { harness, injectConflict } = useLoopStore();
+  const a = useMemo(() => analyzeHarness(harness), [harness]);
+
+  const state = a.error ? "error" : !a.ok ? "dead" : a.emergent.length ? "warn" : "clean";
+  const headline =
+    a.error ? "Harness will not compile"
+    : !a.ok ? "No claim can pass this point"
+    : a.emergent.length ? `${a.emergent.length} class${a.emergent.length > 1 ? "es" : ""} silently excluded`
+    : "Admissible — every rule can be satisfied together";
+
+  return (
+    <section className={`analysis panel ${state}`}>
+      <div className="panel-h">
+        Authoring-time analysis <span className="chain-badge">compiler pass</span>
+      </div>
+
+      <div className="an-head">
+        <span className={`an-dot ${state}`} />
+        <span className="an-headline">{headline}</span>
+      </div>
+
+      {a.error && <div className="an-err mono">{a.error}</div>}
+
+      {a.emergent.map((d) => (
+        <div key={d.label} className="an-finding">
+          <div className="an-finding-h">
+            No claim with <span className="mono">{d.label}</span> can ever pass
+          </div>
+          <div className="an-finding-b">
+            Emerges from {d.conflict.length} rules together — no single author saw it:{" "}
+            {d.conflict.map((c) => <span key={c} className="mono an-rule">{c}</span>)}
+          </div>
+          <div className="an-finding-n">
+            Replay cannot find this. The corpus holds paid claims, and it only has
+            examples of what already got through.
+          </div>
+        </div>
+      ))}
+
+      {state === "clean" && a.point?.witness && (
+        <div className="an-witness">
+          <div className="an-witness-h">Witness — a claim that passes all {a.point.criteria.length} rules</div>
+          <code className="mono">{witnessLine(a.point.witness.payload)}</code>
+        </div>
+      )}
+
+      {a.intentional.length > 0 && (
+        <div className="an-note">
+          {a.intentional.length} class{a.intentional.length > 1 ? "es" : ""} excluded by a single rule
+          — that rule working as designed, not a finding.
+        </div>
+      )}
+
+      {a.opaque.length > 0 && (
+        <div className="an-note">
+          {a.opaque.length} predicate{a.opaque.length > 1 ? "s" : ""} backed by registered code, treated
+          as free variables. Sound but incomplete: no false alarms, some real conflicts unseen.
+        </div>
+      )}
+
+      {a.emergent.length === 0 && !a.error && (
+        <button className="an-inject" onClick={injectConflict}>
+          Add two rules that pass replay &rarr;
+        </button>
+      )}
+    </section>
+  );
+}
+
+function witnessLine(payload: Record<string, unknown>): string {
+  return Object.entries(payload)
+    .filter(([, v]) => v !== "" && v !== 0)
+    .map(([k, v]) => `${k}=${String(v)}`)
+    .join("  ") || "(any claim)";
+}
+
 // ── Ledger ───────────────────────────────────────────────────────────────────
 
 const KIND_ICON: Record<LedgerKind, string> = {
@@ -263,6 +347,7 @@ export default function App() {
         <div className="col-right">
           <Metrics />
           <HarnessPanel />
+          <AnalysisPanel />
           <LedgerPanel />
         </div>
       </main>

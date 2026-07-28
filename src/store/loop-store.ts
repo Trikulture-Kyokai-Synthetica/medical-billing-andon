@@ -7,6 +7,7 @@ import starterSource from "../harness/billing-starter.qc?raw";
 import { BillingLoop, type LoopMetrics, type TickResult } from "../lib/billing-loop";
 import type { LedgerEntry } from "../lib/ledger";
 import { adjudicate, type Remit } from "../lib/payer";
+import { CONFLICTING_PAIR } from "../lib/analysis";
 
 const SEED = 7;
 
@@ -25,6 +26,8 @@ interface LoopStore {
   /** Bumps whenever a rule deploys — lets the harness panel flash the new rule. */
   lastDeployField: string | null;
 
+  /** Splice in the two-rule conflict the replay gate cannot see. Demo only. */
+  injectConflict: () => void;
   tick: () => Promise<void>;
   run: (n: number) => Promise<void>;
   toggleAuto: () => void;
@@ -64,6 +67,11 @@ export const useLoopStore = create<LoopStore>((set, get) => {
     running: false,
     ticks: 0,
     lastDeployField: null,
+
+    injectConflict: () => {
+      get().loop.appendRules(CONFLICTING_PAIR);
+      set(snapshot(get().loop, get().last));
+    },
 
     tick: async () => {
       const result = await get().loop.tick();

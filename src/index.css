@@ -152,3 +152,43 @@ button.ghost { background: transparent; color: var(--fg-2); }
 /* footer */
 .foot { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--fg-2); font-size: 12px; line-height: 1.6; }
 .foot .mono { color: var(--fg-1); }
+
+/* ── Authoring-time analysis panel ──────────────────────────────────────── */
+/* The compiler pass sitting next to the test suite. Colour carries the state:
+   green = every rule satisfiable together, amber = something is silently
+   excluded, red = nothing can pass at all. */
+
+.analysis .an-head { display: flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1rem 0.6rem; }
+.an-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+.an-dot.clean { background: #22c55e; box-shadow: 0 0 10px rgba(34,197,94,0.65); }
+.an-dot.warn  { background: #f59e0b; box-shadow: 0 0 10px rgba(245,158,11,0.65); }
+.an-dot.dead,
+.an-dot.error { background: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,0.65); }
+.an-headline { font-size: 0.88rem; font-weight: 600; color: #e2e8f0; line-height: 1.35; }
+
+.an-finding {
+  margin: 0 1rem 0.7rem; padding: 0.75rem 0.85rem;
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-left-width: 3px; border-radius: 0 6px 6px 0;
+}
+.an-finding-h { font-size: 0.85rem; color: #fcd34d; font-weight: 600; margin-bottom: 0.35rem; }
+.an-finding-b { font-size: 0.78rem; color: #cbd5e1; line-height: 1.5; }
+.an-finding-n { font-size: 0.74rem; color: #94a3b8; line-height: 1.45; margin-top: 0.4rem; font-style: italic; }
+.an-rule { display: inline-block; margin-right: 0.4rem; color: #fcd34d; }
+
+.an-witness { margin: 0 1rem 0.7rem; padding: 0.6rem 0.8rem; background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.28); border-radius: 6px; }
+.an-witness-h { font-size: 0.72rem; color: #86efac; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0.3rem; }
+.an-witness code { font-size: 0.72rem; color: #cbd5e1; word-break: break-all; line-height: 1.55; }
+
+.an-note { margin: 0 1rem 0.55rem; font-size: 0.73rem; color: #64748b; line-height: 1.5; }
+.an-err { margin: 0 1rem 0.7rem; font-size: 0.75rem; color: #fca5a5; }
+
+.an-inject {
+  display: block; margin: 0.3rem 1rem 1rem; padding: 0.5rem 0.8rem;
+  background: rgba(148, 163, 184, 0.08); border: 1px dashed rgba(148, 163, 184, 0.4);
+  border-radius: 6px; color: #94a3b8; font-size: 0.76rem; cursor: pointer;
+  font-family: inherit; width: calc(100% - 2rem); text-align: left;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.an-inject:hover { border-color: #f59e0b; color: #fcd34d; background: rgba(245, 158, 11, 0.08); }

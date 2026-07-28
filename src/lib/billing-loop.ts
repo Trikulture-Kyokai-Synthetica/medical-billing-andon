@@ -98,6 +98,23 @@ export class BillingLoop {
     return this.metrics.submitted === 0 ? 0 : this.metrics.denied / this.metrics.submitted;
   }
 
+  /**
+   * Splice human-authored rules into the live harness, bypassing the AI
+   * mutation pipeline entirely.
+   *
+   * Note what this models. The AI *cannot* author rules like these: its action
+   * space is append-only positive conjuncts (`REQUIRES <field>`), and positive
+   * conjunctions cannot contradict each other. Rules with OR and NOT come from
+   * a human through review. So the risk this demonstrates is not the AI going
+   * rogue — it is two people, months apart, each writing a defensible rule.
+   */
+  appendRules(qcText: string): void {
+    const candidate = this.harnessSource.trimEnd() + "\n" + qcText + "\n";
+    this.built = buildHarness(candidate); // throws if malformed — fail closed
+    this.harnessSource = candidate;
+    this.emit();
+  }
+
   async tick(): Promise<TickResult> {
     const claim = generateClaim(this.rng, this.seq++);
     this.metrics.processed++;

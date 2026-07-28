@@ -6,6 +6,10 @@ export { Parser, ParseError } from './parser.js';
 export { Lexer, LexerError, TokenType } from './lexer.js';
 export type { Token } from './lexer.js';
 export { validate } from './validator.js';
+export { analyze } from './analyzer.js';
+export type {
+  AnalysisResult, PointAnalysis, AnalyzeOptions, AtomInfo, AtomKind, Witness, DeadClass,
+} from './analyzer.js';
 export type {
   ValidationResult,
   ValidationError,
