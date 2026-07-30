@@ -22,3 +22,9 @@ run_worker_first = true
 # HF_TOKEN is set via `wrangler secret put HF_TOKEN` (or in the
 # dashboard under Settings → Variables and Secrets). Never declared
 # as a [vars] entry — vars ship in the bundle, secrets don't.
+
+# Token accounting — shared dataset with agicore-foundry and accelerando so
+# one query spans every product that spends BabyAI tokens.
+[[analytics_engine_datasets]]
+binding = "ANALYTICS_ENGINE"
+dataset = "analytic_events"
