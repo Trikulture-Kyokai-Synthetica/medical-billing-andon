@@ -3,7 +3,7 @@ import { messagesFor } from "./lib/edi";
 import { ALL_BILLING_FIELDS, carcForField } from "./lib/carc";
 import type { TickStage } from "./lib/billing-loop";
 import type { LedgerEntry, LedgerKind } from "./lib/ledger";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { analyzeHarness } from "./lib/analysis";
 
 // ── Header + controls ────────────────────────────────────────────────────────
@@ -335,6 +335,15 @@ function LedgerRow({ e }: { e: LedgerEntry }) {
 // ── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const prime = useLoopStore((st) => st.prime);
+
+  // Land on a running system, not an empty floor. A visitor arriving from
+  // the homepage previously saw every panel at zero — no claims, a 0%
+  // denial rate, an empty ledger — which reads as broken rather than as
+  // "press Run". Priming is deterministic and offline, and it stops short
+  // of the full story so there is still something left to watch.
+  useEffect(() => { void prime(); }, [prime]);
+
   return (
     <div className="app">
       <Header />

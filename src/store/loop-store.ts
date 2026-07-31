@@ -22,10 +22,18 @@ interface LoopStore {
   harness: string;
   learned: string[];
   running: boolean;
+  /** Guards the one-shot prime against double invocation. */
+  priming: boolean;
   ticks: number;
   /** Bumps whenever a rule deploys — lets the harness panel flash the new rule. */
   lastDeployField: string | null;
 
+  /**
+   * Populate the demo on first load so a visitor lands on a running system
+   * rather than an empty floor. Idempotent — safe to call from an effect
+   * that React may invoke twice.
+   */
+  prime: () => Promise<void>;
   /** Splice in the two-rule conflict the replay gate cannot see. Demo only. */
   injectConflict: () => void;
   tick: () => Promise<void>;
@@ -65,8 +73,26 @@ export const useLoopStore = create<LoopStore>((set, get) => {
     harness: loop.source,
     learned: [],
     running: false,
+    priming: false,
     ticks: 0,
     lastDeployField: null,
+
+    prime: async () => {
+      // Only ever primes a pristine loop. After an explicit Reset the
+      // visitor asked for a clean slate, so respect that and stay empty.
+      if (get().ticks > 0 || get().priming) return;
+      set({ priming: true });
+      try {
+        // Twelve claims is enough to tell the story on arrival — some held
+        // at the scrubber, some paid, at least one denial that pulls the
+        // cord and teaches the harness a rule — while leaving plenty for
+        // "Run 20" to demonstrate. Deterministic and offline: seeded RNG
+        // plus the stub responder, so no network and no tokens.
+        await get().run(12);
+      } finally {
+        set({ priming: false });
+      }
+    },
 
     injectConflict: () => {
       get().loop.appendRules(CONFLICTING_PAIR);
@@ -100,7 +126,7 @@ export const useLoopStore = create<LoopStore>((set, get) => {
       set({
         loop, last: null, lastRemit: null, metrics: { ...loop.metrics },
         denialRate: 0, ledger: loop.ledgerEntries(), harness: loop.source,
-        learned: [], running: false, ticks: 0, lastDeployField: null,
+        learned: [], running: false, priming: false, ticks: 0, lastDeployField: null,
       });
     },
   };
